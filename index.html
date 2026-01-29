@@ -85,12 +85,25 @@
                         </div>
 
                         <div id="form-vcard" class="input-group hidden space-y-4">
+                            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4 flex items-start gap-3">
+                                <i class="fa-solid fa-print text-blue-600 mt-1"></i>
+                                <div>
+                                    <h4 class="font-bold text-blue-900 text-sm">Crea Card di Contatto</h4>
+                                    <p class="text-xs text-blue-700">Compila i dati e clicca il pulsante nero qui sotto. Si aprirà una pagina di stampa perfetta.</p>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-2 gap-4">
                                 <input type="text" id="vcard-name" placeholder="Nome" class="w-full px-4 py-3 rounded-lg border border-slate-300" oninput="generateQR()">
                                 <input type="text" id="vcard-surname" placeholder="Cognome" class="w-full px-4 py-3 rounded-lg border border-slate-300" oninput="generateQR()">
                             </div>
                             <input type="tel" id="vcard-phone" placeholder="Telefono" class="w-full px-4 py-3 rounded-lg border border-slate-300" oninput="generateQR()">
                             <input type="email" id="vcard-email" placeholder="Email" class="w-full px-4 py-3 rounded-lg border border-slate-300" oninput="generateQR()">
+
+                            <button onclick="printVCard()" class="w-full mt-6 bg-slate-900 text-white font-bold py-4 px-6 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-3 shadow-xl transform active:scale-95 duration-200">
+                                <i class="fa-solid fa-print text-xl"></i>
+                                <span class="text-lg">Stampa / Salva PDF Card</span>
+                            </button>
                         </div>
 
                         <div id="form-text" class="input-group hidden">
@@ -128,8 +141,10 @@
 
         function switchTab(mode) {
             currentMode = mode;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('tab-' + mode).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active') && btn.classList.add('hover:text-indigo-600'));
+            const tab = document.getElementById('tab-' + mode)
+            tab.classList.add('active');
+            tab.classList.remove('hover:text-indigo-600');
             document.querySelectorAll('.input-group').forEach(group => group.classList.add('hidden'));
             document.getElementById('form-' + mode).classList.remove('hidden');
             generateQR();
@@ -200,7 +215,6 @@
             }
         }
 
-        // --- LA SOLUZIONE SENIOR: PRINT WINDOW ---
         function printWifiCard() {
             if (currentMode !== 'wifi') return;
             
@@ -290,7 +304,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
                         </div>
                         
-                        <h1>Wi-Fi Guest</h1>
+                        <h1>Wi-Fi</h1>
                         <p class="subtitle">Scan to connect automatically</p>
                         
                         <div class="qr-box">
@@ -307,6 +321,140 @@
                     </div>
                     <script>
                         // Avvia la stampa automaticamente
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            win.document.write(htmlContent);
+            win.document.close(); // Importante per far finire il caricamento
+        }
+
+
+        function printVCard() {
+            if (currentMode !== 'vcard') return;
+            
+            const n = document.getElementById('vcard-name').value;
+            const s = document.getElementById('vcard-surname').value;
+            const p = document.getElementById('vcard-phone').value;
+            const e = document.getElementById('vcard-email').value;
+            const qrData = getQRDataUrl();
+
+            if(!qrData) { alert("Attendi caricamento QR..."); return; }
+
+            // Creiamo un documento HTML al volo per la stampa
+            // Questo assicura che il QR Code (passato come base64) sia SEMPRE visibile
+            const win = window.open('', '', 'height=700,width=900');
+            
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Contact Card - ${n} ${s}</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                        
+                        body {
+                            font-family: 'Inter', sans-serif;
+                            background-color: #f3f4f6;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                            margin: 0;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+
+                        .card {
+                            background: white;
+                            width: 100%;
+                            max-width: 900px;
+                            border: 6px solid #111827;
+                            padding: 40px;
+                            display: flex;
+                            gap: 40px;
+                            align-items: center;
+                            border-radius: 24px;
+                            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                        }
+
+                        .left-section {
+                            flex: 1;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                        }
+
+                        h1 { font-size: 42px; font-weight: 900; color: #111827; margin: 0 0 30px 0; letter-spacing: -0.5px; }
+                        
+                        .info-box {
+                            background: #f9fafb;
+                            padding: 24px;
+                            border-radius: 16px;
+                            border: 1px solid #e5e7eb;
+                        }
+
+                        .info-item {
+                            margin-bottom: 20px;
+                        }
+
+                        .info-item:last-child {
+                            margin-bottom: 0;
+                        }
+
+                        .label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 6px; }
+                        .value { display: block; font-size: 18px; font-weight: 600; color: #111827; word-break: break-all; }
+
+                        .right-section {
+                            flex: 0 0 auto;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                        }
+
+                        .qr-box {
+                            background: white;
+                            padding: 16px;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 16px;
+                        }
+                        
+                        .qr-box img {
+                            width: 220px;
+                            height: 220px;
+                            display: block;
+                        }
+
+                        @media print {
+                            body { background: white; }
+                            .card { box-shadow: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <div class="left-section">
+                            <h1>${n} ${s}</h1>
+                            <div class="info-box">
+                                <div class="info-item">
+                                    <span class="label">Phone</span>
+                                    <span class="value">${p || '-'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Email</span>
+                                    <span class="value">${e || '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right-section">
+                            <div class="qr-box">
+                                <img src="${qrData}" alt="QR Code Contact" />
+                            </div>
+                        </div>
+                    </div>
+                    <script>
                         window.onload = function() { window.print(); }
                     <\/script>
                 </body>
